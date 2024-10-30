@@ -1,6 +1,6 @@
-package RedSource.entities;
+package RedSource.Model.entities;
 
-import RedSource.entities.enums.UserRoleType;
+import RedSource.Model.enums.UserRoleType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
