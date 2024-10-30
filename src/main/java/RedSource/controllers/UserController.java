@@ -1,6 +1,6 @@
 package RedSource.controllers;
 
-import RedSource.entities.User;
+import RedSource.Model.entities.User;
 import RedSource.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

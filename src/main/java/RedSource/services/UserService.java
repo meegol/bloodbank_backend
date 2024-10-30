@@ -1,6 +1,6 @@
 package RedSource.services;
 
-import RedSource.entities.User;
+import RedSource.Model.entities.User;
 import RedSource.repositories.UserRepository;
 import RedSource.Utils.MessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
