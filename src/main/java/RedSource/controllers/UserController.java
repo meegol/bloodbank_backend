@@ -1,6 +1,8 @@
 package RedSource.controllers;
 
-import RedSource.Model.entities.User;
+import RedSource.Entities.DTO.UserDTO;
+import RedSource.Entities.utils.MessageUtils;
+import RedSource.Entities.utils.ResponseUtils;
 import RedSource.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,41 +15,44 @@ import java.util.List;
 @RequestMapping("/users")
 public class UserController {
 
+    private static final String DONOR = "Donor";
+
     @Autowired
     private UserService userService;
 
     // Get all users (donors)
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userService.getAll();
-        return ResponseEntity.ok(users);
+    public ResponseEntity<?> getAllUsers() {
+        List<UserDTO> users = userService.getAll(); // Change to UserDTO
+        return ResponseEntity.ok(ResponseUtils.buildSuccessResponse(HttpStatus.OK, "Users retrieved successfully", users));
     }
 
     // Get a user (donor) by ID
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Integer id) {
-        User user = userService.getById(id);
-        return ResponseEntity.ok(user);
+    public ResponseEntity<?> getUserById(@PathVariable Integer id) {
+        UserDTO user = userService.getById(id); // Change to UserDTO
+        return ResponseEntity.ok(ResponseUtils.buildSuccessResponse(HttpStatus.OK, "User retrieved successfully", user));
     }
 
     // Create a new user (donor)
-    @PostMapping("/create") // Added /create for clarity
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        User createdUser = userService.create(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+    @PostMapping("/create")
+    public ResponseEntity<?> createUser(@RequestBody UserDTO userDTO) { // Change to UserDTO
+        UserDTO createdUser = userService.create(userDTO);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ResponseUtils.buildSuccessResponse(HttpStatus.CREATED, MessageUtils.saveSuccess(DONOR), createdUser));
     }
 
     // Update an existing user (donor) by ID
-    @PutMapping("/{id}/update") // Added /update for clarity
-    public ResponseEntity<User> updateUser(@PathVariable Integer id, @RequestBody User user) {
-        User updatedUser = userService.update(id, user);
-        return ResponseEntity.ok(updatedUser);
+    @PutMapping("/{id}/update")
+    public ResponseEntity<?> updateUser(@PathVariable Integer id, @RequestBody UserDTO userDTO) { // Change to UserDTO
+        UserDTO updatedUser = userService.update(id, userDTO);
+        return ResponseEntity.ok(ResponseUtils.buildSuccessResponse(HttpStatus.OK, MessageUtils.updateSuccess(DONOR), updatedUser));
     }
 
     // Delete a user (donor) by ID
-    @DeleteMapping("/{id}/delete") // Added /delete for clarity
-    public ResponseEntity<Void> deleteUser(@PathVariable Integer id) {
+    @DeleteMapping("/{id}/delete")
+    public ResponseEntity<?> deleteUser(@PathVariable Integer id) {
         userService.delete(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ResponseUtils.buildSuccessResponse(HttpStatus.NO_CONTENT, MessageUtils.deleteSuccess(DONOR)));
     }
 }

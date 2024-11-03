@@ -1,4 +1,4 @@
-package RedSource.Utils;
+package RedSource.Entities.utils;
 
 public class MessageUtils {
 
@@ -45,6 +45,13 @@ public class MessageUtils {
     public static final String ALREADY_EXISTS = "%s already exists.";
     public static final String INVALID_REQUEST = "Invalid request for %s.";
     public static final String NO_PERMISSION = "You do not have permission to access %s.";
+
+    // Additional validation messages
+    public static final String MISSING_NAME = "Name is required and cannot be blank.";
+    public static final String MISSING_EMAIL = "Email is required and cannot be blank.";
+    public static final String MISSING_PASSWORD = "Password is required and must be at least 6 characters long.";
+    public static final String MISSING_CONTACT_INFORMATION = "Contact information is required and cannot be blank.";
+    public static final String MISSING_BIRTHDATE = "Birthdate is required.";
 
     // Dynamic methods to format messages
     public static String retrieveSuccess(String value) {
