@@ -1,58 +1,120 @@
 package RedSource.controllers;
 
-import RedSource.Entities.DTO.UserDTO;
-import RedSource.Entities.utils.MessageUtils;
-import RedSource.Entities.utils.ResponseUtils;
+import RedSource.entities.RO.UserRO;
+import RedSource.entities.utils.MessageUtils;
+import RedSource.entities.utils.ResponseUtils;
 import RedSource.services.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/user")
+@RequiredArgsConstructor
 public class UserController {
 
-    private static final String DONOR = "Donor";
+    public static final String USER = "User";
+    public static final String USERS = "Users";
+    public static final String ROLE = "Role";
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
-    // Get all users (donors)
+    // Get all users
     @GetMapping
-    public ResponseEntity<?> getAllUsers() {
-        List<UserDTO> users = userService.getAll(); // Change to UserDTO
-        return ResponseEntity.ok(ResponseUtils.buildSuccessResponse(HttpStatus.OK, "Users retrieved successfully", users));
+    public ResponseEntity<?> getAll() {
+        return ResponseEntity.ok(
+                ResponseUtils.buildSuccessResponse(
+                        HttpStatus.OK,
+                        MessageUtils.retrieveSuccess(USERS),
+                        userService.getAll()
+                )
+        );
     }
 
-    // Get a user (donor) by ID
+    // Get all users by a specific role (filter)
+    @GetMapping("/filter")
+    public ResponseEntity<?> getAllByFilter(@RequestParam(required = false) String role) {
+        if (role == null || role.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(
+                    ResponseUtils.buildErrorResponse(
+                            HttpStatus.BAD_REQUEST,
+                            MessageUtils.invalidRequest(ROLE)
+                    )
+            );
+        }
+        return ResponseEntity.ok(
+                ResponseUtils.buildSuccessResponse(
+                        HttpStatus.OK,
+                        MessageUtils.retrieveSuccess(role),
+                        userService.getAllByFilter(role)
+                )
+        );
+    }
+
+    // Get user by ID
     @GetMapping("/{id}")
     public ResponseEntity<?> getUserById(@PathVariable Integer id) {
-        UserDTO user = userService.getById(id); // Change to UserDTO
-        return ResponseEntity.ok(ResponseUtils.buildSuccessResponse(HttpStatus.OK, "User retrieved successfully", user));
+        return ResponseEntity.ok(
+                ResponseUtils.buildSuccessResponse(
+                        HttpStatus.OK,
+                        MessageUtils.retrieveSuccess(USER),
+                        userService.getUserById(id)
+                )
+        );
     }
 
-    // Create a new user (donor)
-    @PostMapping("/create")
-    public ResponseEntity<?> createUser(@RequestBody UserDTO userDTO) { // Change to UserDTO
-        UserDTO createdUser = userService.create(userDTO);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ResponseUtils.buildSuccessResponse(HttpStatus.CREATED, MessageUtils.saveSuccess(DONOR), createdUser));
+    // Save a new user
+    @PostMapping
+    public ResponseEntity<?> save(@Valid @RequestBody UserRO userRO, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().body(
+                    ResponseUtils.buildErrorResponse(
+                            HttpStatus.BAD_REQUEST,
+                            MessageUtils.validationErrors(bindingResult)
+                    )
+            );
+        }
+        userService.save(userRO);
+        return ResponseEntity.ok(
+                ResponseUtils.buildSuccessResponse(
+                        HttpStatus.OK,
+                        MessageUtils.saveSuccess(userRO.getRole().toString())
+                )
+        );
     }
 
-    // Update an existing user (donor) by ID
-    @PutMapping("/{id}/update")
-    public ResponseEntity<?> updateUser(@PathVariable Integer id, @RequestBody UserDTO userDTO) { // Change to UserDTO
-        UserDTO updatedUser = userService.update(id, userDTO);
-        return ResponseEntity.ok(ResponseUtils.buildSuccessResponse(HttpStatus.OK, MessageUtils.updateSuccess(DONOR), updatedUser));
+    // Update an existing user
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable Integer id, @Valid @RequestBody UserRO userRO, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().body(
+                    ResponseUtils.buildErrorResponse(
+                            HttpStatus.BAD_REQUEST,
+                            MessageUtils.validationErrors(bindingResult)
+                    )
+            );
+        }
+        userService.update(id, userRO);
+        return ResponseEntity.ok(
+                ResponseUtils.buildSuccessResponse(
+                        HttpStatus.OK,
+                        MessageUtils.updateSuccess(userRO.getRole().toString())
+                )
+        );
     }
 
-    // Delete a user (donor) by ID
-    @DeleteMapping("/{id}/delete")
-    public ResponseEntity<?> deleteUser(@PathVariable Integer id) {
-        userService.delete(id);
-        return ResponseEntity.ok(ResponseUtils.buildSuccessResponse(HttpStatus.NO_CONTENT, MessageUtils.deleteSuccess(DONOR)));
+    // Delete a user
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable Integer id, @RequestParam(required = false) String role) {
+        userService.delete(id, role);
+        return ResponseEntity.ok(
+                ResponseUtils.buildSuccessResponse(
+                        HttpStatus.OK,
+                        MessageUtils.deleteSuccess(role != null ? role : USER)
+                )
+        );
     }
 }

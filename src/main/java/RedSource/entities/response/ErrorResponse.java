@@ -1,4 +1,4 @@
-package RedSource.Entities.response;
+package RedSource.entities.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;

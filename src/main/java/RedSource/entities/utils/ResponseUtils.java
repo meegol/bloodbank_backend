@@ -1,7 +1,7 @@
-package RedSource.Entities.utils;
+package RedSource.entities.utils;
 
-import RedSource.Entities.response.ErrorResponse;
-import RedSource.Entities.response.SuccessResponse;
+import RedSource.entities.response.ErrorResponse;
+import RedSource.entities.response.SuccessResponse;
 import org.springframework.http.HttpStatus;
 
 public class ResponseUtils {

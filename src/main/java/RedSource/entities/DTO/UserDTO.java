@@ -1,11 +1,11 @@
-package RedSource.Entities.DTO;
+package RedSource.entities.DTO;
 
-import RedSource.Entities.User;
+import RedSource.entities.User;
+import RedSource.entities.enums.UserRoleType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import RedSource.Entities.enums.UserRoleType;
 
 import java.io.Serial;
 import java.io.Serializable;

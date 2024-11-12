@@ -1,4 +1,9 @@
-package RedSource.Entities.utils;
+package RedSource.entities.utils;
+
+import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.validation.BindingResult;
+
+import java.util.stream.Collectors;
 
 public class MessageUtils {
 
@@ -105,4 +110,11 @@ public class MessageUtils {
     public static String inventoryLowAlert(String bloodType) {
         return String.format(INVENTORY_LOW_ALERT, bloodType);
     }
+
+    public static String validationErrors(BindingResult bindingResult) {
+        return bindingResult.getAllErrors().stream()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .collect(Collectors.joining(", "));
+    }
+
 }

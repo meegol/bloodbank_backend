@@ -1,7 +1,7 @@
-package RedSource.Entities.RO;
+package RedSource.entities.RO;
 
-import RedSource.Entities.User;
-import RedSource.Entities.enums.UserRoleType;
+import RedSource.entities.User;
+import RedSource.entities.enums.UserRoleType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -40,9 +40,11 @@ public class UserRO {
     @NotNull(message = "Role is mandatory.")
     private UserRoleType role;
 
+    @NotNull(message = "Blood Type ID is mandatory.")
     private Integer bloodTypeId;
     private String profilePicture;
     private Date dateOfBirth;
+
 
     /**
      * Converts this RO to a User entity.
@@ -57,17 +59,15 @@ public class UserRO {
 
         user.setName(this.name);
         user.setEmail(this.email);
-
-
-        if (user.getUserId() == null && this.password != null && !this.password.isBlank()) {
-            user.setPassword(this.password);
-        }
-
         user.setContact_information(this.contactInformation);
         user.setRole(this.role);
         user.setBloodTypeId(this.bloodTypeId);
         user.setProfile_picture(this.profilePicture);
         user.setDateOfBirth(this.dateOfBirth);
+
+        if (this.password != null && !this.password.isBlank()) {
+            user.setPassword(this.password);
+        }
 
         return user;
     }
