@@ -1,6 +1,6 @@
 package RedSource.repositories;
 
-import RedSource.Model.entities.User;
+import RedSource.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

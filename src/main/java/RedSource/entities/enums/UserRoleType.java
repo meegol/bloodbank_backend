@@ -1,4 +1,4 @@
-package RedSource.Model.enums;
+package RedSource.entities.enums;
 
 public enum UserRoleType {
     DONOR,
