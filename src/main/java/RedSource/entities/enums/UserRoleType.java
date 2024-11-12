@@ -2,5 +2,7 @@ package RedSource.Model.enums;
 
 public enum UserRoleType {
     DONOR,
-    ADMIN,
+    BLOODBANK,
+    HOSPITAL,
+    ADMIN
 }

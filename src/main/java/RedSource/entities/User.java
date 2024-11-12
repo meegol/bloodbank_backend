@@ -2,9 +2,25 @@ package RedSource.Model.entities;
 
 import RedSource.Model.enums.UserRoleType;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.io.Serial;
@@ -26,48 +42,47 @@ public class User implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
-    Integer userId;
+    private Integer userId;
 
     @Column(name = "blood_type_id")
     @JsonProperty("blood_type_id")
-    Integer bloodTypeId;
+    private Integer bloodTypeId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "roles", length = 50)
-    UserRoleType roles;
+    private UserRoleType role;
 
     @Column(name = "name", length = 100)
-    String name;
+    private String name;
 
     @Column(name = "email", length = 100, unique = true)
-    String email;
+    private String email;
 
     @Column(name = "profile_picture", length = 100)
-    String profile_picture;
+    private String profile_picture;
 
-    @Column(name = "username", length = 100, unique = true)
-    String username;
 
+    @JsonIgnore
     @Column(name = "password", length = 100)
-    String password;
+    private String password;
 
     @Temporal(TemporalType.DATE)
     @Column(name = "date_of_birth")
     @JsonProperty("date_of_birth")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    Date dateOfBirth;
+    private Date dateOfBirth;
 
     @JsonProperty("contact_information")
     @Column(name = "contact_information", length = 255)
-    String contact_information;
+    private String contact_information;
 
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
-    Date createdAt;
+    private Date createdAt;
 
     @Column(name = "updated_at")
     @Temporal(TemporalType.TIMESTAMP)
-    Date updatedAt;
+    private Date updatedAt;
 
     @PrePersist
     protected void onCreate() {

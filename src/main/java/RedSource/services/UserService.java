@@ -1,136 +1,117 @@
 package RedSource.services;
 
-import RedSource.Model.entities.User;
+import RedSource.entities.RO.UserRO;
+import RedSource.entities.User;
+import RedSource.entities.utils.MessageUtils;
+import RedSource.exceptions.ServiceException;
 import RedSource.repositories.UserRepository;
-import RedSource.Utils.MessageUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
-import java.util.Date;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
 
 @Service
+@Slf4j
+@RequiredArgsConstructor
 public class UserService {
 
-    private static final String DONOR = "Donor";
-    private static final String DONORS = "Donors";
-    private static final String NAME = "Name";
-    private static final String EMAIL = "Email";
-    private static final String USERNAME = "Username";
-    private static final String PASSWORD = "Password";
-    private static final String CONTACT_INFORMATION = "Contact Information";
-    private static final String BIRTHDATE = "Date of Birth";
-    private static final String ID = "ID";
+    public static final String DONOR = "Donor";
+    public static final String BLOODBANK = "BloodBank";
+    public static final String HOSPITAL = "Hospital";
+    public static final String USER = "User";
+    public static final String USERS = "Users";
+    public static final String ROLE = "Role";
 
-    @Autowired
-    private UserRepository userRepository;
 
-    // Get all users (donors)
+    private final UserRepository userRepository;
+
+    // Retrieve all users without any filter
     public List<User> getAll() {
-        List<User> users = userRepository.findAll();
-        if (users.isEmpty()) {
-            throw new RuntimeException(MessageUtils.retrieveEmpty(DONORS));
-        }
-        return users;
-    }
-
-    // Get a user (donor) by ID
-    public User getById(Integer id) {
-        validateId(id);
-        return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException(MessageUtils.notFound(DONOR + " with ID " + id)));
-    }
-
-    // Create a new user (donor)
-    public User create(User user) {
-        validateUser(user);
-        checkIfUserExists(user);
-        user.setCreatedAt(new Date());
-        user.setUpdatedAt(new Date());
-        System.out.println("Creating user: " + user);
-        return userRepository.save(user);
-    }
-
-    // Update an existing user (donor)
-    public User update(Integer id, User user) {
-        validateId(id);
-        validateUser(user);
-        return userRepository.findById(id)
-                .map(existingUser -> {
-                    updateUserDetails(existingUser, user);
-                    existingUser.setUpdatedAt(new Date()); // Update updatedAt to current date
-                    return userRepository.save(existingUser);
-                })
-                .orElseThrow(() -> new RuntimeException(MessageUtils.notFound(DONOR + " with ID " + id)));
-    }
-
-    // Delete a user (donor) by ID
-    public void delete(Integer id) {
-        validateId(id);
-        if (!userRepository.existsById(id)) {
-            throw new RuntimeException(MessageUtils.notFound(DONOR + " with ID " + id));
-        }
-        userRepository.deleteById(id);
-    }
-
-    // Utility to validate user data
-    private void validateUser(User user) {
-        if (user == null) {
-            throw new IllegalArgumentException(MessageUtils.invalidRequest(DONOR));
-        }
-        if (!StringUtils.hasText(user.getName())) {
-            throw new IllegalArgumentException(MessageUtils.invalidRequest(NAME));
-        }
-        if (!StringUtils.hasText(user.getEmail())) {
-            throw new IllegalArgumentException(MessageUtils.invalidRequest(EMAIL));
-        }
-        if (!StringUtils.hasText(user.getUsername())) {
-            throw new IllegalArgumentException(MessageUtils.invalidRequest(USERNAME));
-        }
-        if (!StringUtils.hasText(user.getPassword())) {
-            throw new IllegalArgumentException(MessageUtils.invalidRequest(PASSWORD));
-        }
-        if (!StringUtils.hasText(user.getContact_information())) {
-            throw new IllegalArgumentException(MessageUtils.invalidRequest(CONTACT_INFORMATION));
-        }
-        if (user.getDateOfBirth() == null) {
-            throw new IllegalArgumentException(MessageUtils.invalidRequest(BIRTHDATE));
+        try {
+            List<User> users = userRepository.findAll();
+            log.info(MessageUtils.retrieveSuccess(USERS));
+            return users;
+        } catch (Exception e) {
+            String errorMessage = MessageUtils.retrieveError(USERS);
+            log.error(errorMessage, e);
+            throw new ServiceException(errorMessage, e);
         }
     }
 
-    // Utility to check for existing user with same email or username
-    private void checkIfUserExists(User user) {
-        Optional<User> existingUserByEmail = userRepository.findByEmail(user.getEmail());
-        Optional<User> existingUserByUsername = userRepository.findByUsername(user.getUsername());
-
-        if (existingUserByEmail.isPresent()) {
-            throw new RuntimeException(MessageUtils.alreadyExists("Email " + user.getEmail()));
-        }
-        if (existingUserByUsername.isPresent()) {
-            throw new RuntimeException(MessageUtils.alreadyExists("Username " + user.getUsername()));
-        }
-    }
-
-    // Utility to update user details
-    private void updateUserDetails(User existingUser, User newUser) {
-        existingUser.setName(newUser.getName());
-        existingUser.setEmail(newUser.getEmail());
-        existingUser.setUsername(newUser.getUsername());
-        existingUser.setPassword(newUser.getPassword());
-        existingUser.setDateOfBirth(newUser.getDateOfBirth());
-        existingUser.setContact_information(newUser.getContact_information());
-
-        if (newUser.getProfile_picture() != null) {
-            existingUser.setProfile_picture(newUser.getProfile_picture());
+    // Retrieve users by specific filter (e.g., role)
+    public List<User> getAllByFilter(String role) {
+        try {
+            if (role != null && !role.trim().isEmpty()) {
+                List<User> users = userRepository.findAllByRole(role);
+                log.info(MessageUtils.retrieveSuccess(role));
+                return users;
+            } else {
+                log.warn(MessageUtils.invalidRequest(ROLE));
+                return List.of();
+            }
+        } catch (Exception e) {
+            String errorMessage = MessageUtils.retrieveError(role != null ? role : "Filtered Users");
+            log.error(errorMessage, e);
+            throw new ServiceException(errorMessage, e);
         }
     }
 
-    // Utility to validate ID
-    private void validateId(Integer id) {
-        if (id == null || id <= 0) {
-            throw new IllegalArgumentException(MessageUtils.invalidRequest(ID));
+    // Retrieve a user by ID
+    public User getUserById(Integer id) {
+        try {
+            if (Objects.isNull(id)) {
+                return null;
+            }
+            return userRepository.findById(id).orElse(null);
+        } catch (Exception e) {
+            String errorMessage = MessageUtils.retrieveError(USER);
+            log.error(errorMessage, e);
+            throw new ServiceException(errorMessage, e);
+        }
+    }
+
+
+    // Save a new user
+    public void save(UserRO userRO) {
+        try {
+            userRepository.save(userRO.toEntity(null));
+            log.info(MessageUtils.saveSuccess(userRO.getRole().toString()));
+        } catch (Exception e) {
+            String errorMessage = MessageUtils.saveError(userRO.getRole().toString());
+            log.error(errorMessage, e);
+            throw new ServiceException(errorMessage, e);
+        }
+    }
+
+    // Update an existing user
+    public void update(Integer id, UserRO userRO) {
+        try {
+            User user = getUserById(id);
+            userRepository.save(userRO.toEntity(user));
+            log.info(MessageUtils.updateSuccess(userRO.getRole().toString()));
+        } catch (ServiceException e) {
+            throw e;
+        } catch (Exception e) {
+            String errorMessage = MessageUtils.updateError(userRO.getRole().toString());
+            log.error(errorMessage, e);
+            throw new ServiceException(errorMessage, e);
+        }
+    }
+
+    // Delete a user by ID with dynamic role logging
+    public void delete(Integer id, String role) {
+        try {
+            User user = getUserById(id);
+            userRepository.delete(user);
+            log.info(MessageUtils.deleteSuccess(role != null ? role : USER));
+        } catch (ServiceException e) {
+            throw e;
+        } catch (Exception e) {
+            String errorMessage = MessageUtils.deleteError(role != null ? role : USER);
+            log.error(errorMessage, e);
+            throw new ServiceException(errorMessage, e);
         }
     }
 }
