@@ -1,8 +1,3 @@
-<<<<<<< HEAD:src/main/java/RedSource/Utils/ResponseUtils.java
-package RedSource.Utils;
-
-public class ResponseUtils {
-=======
 package RedSource.entities.utils;
 
 import RedSource.entities.response.ErrorResponse;
@@ -35,5 +30,4 @@ public class ResponseUtils {
 
         return response;
     }
->>>>>>> dev_arvin:src/main/java/RedSource/entities/utils/ResponseUtils.java
 }
