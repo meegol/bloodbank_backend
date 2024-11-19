@@ -1,4 +1,4 @@
-package RedSource.Utils;
+package RedSource.utils;
 
 public class MessageUtils {
 
