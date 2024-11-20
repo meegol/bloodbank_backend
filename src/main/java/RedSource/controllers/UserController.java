@@ -45,7 +45,7 @@ public class UserController {
     }
 
     @GetMapping("/filter")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAllByFilter(@RequestParam(required = false) String role) {
         if (role == null || role.trim().isEmpty()) {
             return ResponseEntity.badRequest().body(

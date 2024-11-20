@@ -5,8 +5,8 @@ import RedSource.dto.LoginRequest;
 import RedSource.dto.RegisterRequest;
 import RedSource.entities.User;
 import RedSource.entities.DTO.UserDTO;
+import RedSource.security.jwt.JwtTokenGenerator;
 import RedSource.services.UserService;
-import RedSource.utils.JwtTokenGenerator;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -44,9 +45,12 @@ public class AuthController {
 
             logger.info("User authenticated successfully: {}", request.email());
             
+            // Get UserDetails from Authentication
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            
             // Generate tokens
-            String accessToken = tokenGenerator.generateAccessToken(authentication);
-            String refreshToken = tokenGenerator.generateRefreshToken(authentication);
+            String accessToken = tokenGenerator.generateToken(userDetails);
+            String refreshToken = tokenGenerator.generateRefreshToken(userDetails);
 
             logger.info("Generated tokens for user: {}", request.email());
 
@@ -71,8 +75,6 @@ public class AuthController {
         
         try {
             logger.info("Received registration request for user: {}", request.email());
-            logger.info("Registration request details: name={}, email={}, dateOfBirth={}, roles={}",
-                request.name(), request.email(), request.dateOfBirth(), request.roles());
             
             // Register user
             UserDTO userDTO = userService.registerUser(request);
@@ -101,30 +103,23 @@ public class AuthController {
                 ? refreshToken.substring(7) 
                 : refreshToken;
 
-            // Validate and get user from refresh token
-            if (!userService.validateRefreshToken(refreshToken)) {
+            // Get user from refresh token
+            String username = tokenGenerator.extractUsername(refreshToken);
+            UserDetails userDetails = userService.loadUserByUsername(username);
+
+            // Validate token
+            if (!tokenGenerator.isTokenValid(refreshToken, userDetails)) {
                 logger.error("Invalid refresh token");
                 return ResponseEntity.badRequest().build();
             }
 
-            // Get user from refresh token
-            String username = tokenGenerator.getUsernameFromToken(refreshToken);
-            User user = (User) userService.loadUserByUsername(username);
-
-            logger.info("User loaded from refresh token: {}", user.getEmail());
-            
-            // Create authentication
-            Authentication authentication = new UsernamePasswordAuthenticationToken(
-                user.getEmail(),
-                null,
-                user.getAuthorities()
-            );
+            logger.info("User loaded from refresh token: {}", username);
 
             // Generate new tokens
-            String newAccessToken = tokenGenerator.generateAccessToken(authentication);
-            String newRefreshToken = tokenGenerator.generateRefreshToken(authentication);
+            String newAccessToken = tokenGenerator.generateToken(userDetails);
+            String newRefreshToken = tokenGenerator.generateRefreshToken(userDetails);
 
-            logger.info("New tokens generated for user: {}", user.getEmail());
+            logger.info("New tokens generated for user: {}", username);
             
             // Create response
             AuthResponse authResponse = new AuthResponse(

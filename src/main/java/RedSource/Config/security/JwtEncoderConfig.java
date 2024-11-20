@@ -22,7 +22,7 @@ import java.util.UUID;
 @Configuration
 public class JwtEncoderConfig {
 
-    @Value("${jwt.core.secret}")
+    @Value("${jwt.secret}")
     private String secret;
 
     @Bean

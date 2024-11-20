@@ -1,5 +1,8 @@
 package RedSource.utils;
 
+import org.springframework.validation.BindingResult;
+import java.util.stream.Collectors;
+
 public class MessageUtils {
 
     // Login messages
@@ -46,7 +49,7 @@ public class MessageUtils {
     public static final String INVALID_REQUEST = "Invalid request for %s.";
     public static final String NO_PERMISSION = "You do not have permission to access %s.";
 
-    // Dynamic methods to format messages
+    // Utility methods for message formatting
     public static String retrieveSuccess(String value) {
         return String.format(RETRIEVE_SUCCESS, value);
     }
@@ -97,5 +100,11 @@ public class MessageUtils {
 
     public static String inventoryLowAlert(String bloodType) {
         return String.format(INVENTORY_LOW_ALERT, bloodType);
+    }
+
+    public static String validationErrors(BindingResult bindingResult) {
+        return bindingResult.getFieldErrors().stream()
+                .map(error -> String.format("%s: %s", error.getField(), error.getDefaultMessage()))
+                .collect(Collectors.joining(", "));
     }
 }
