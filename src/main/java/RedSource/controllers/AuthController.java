@@ -4,7 +4,10 @@ import RedSource.dto.AuthResponse;
 import RedSource.dto.LoginRequest;
 import RedSource.dto.RegisterRequest;
 import RedSource.entities.DTO.UserDTO;
+import RedSource.entities.RefreshToken;
+import RedSource.entities.User;
 import RedSource.security.jwt.JwtTokenGenerator;
+import RedSource.services.RefreshTokenService;
 import RedSource.services.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -15,7 +18,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -27,6 +29,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final UserService userService;
     private final JwtTokenGenerator tokenGenerator;
+    private final RefreshTokenService refreshTokenService;
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(
@@ -44,19 +47,19 @@ public class AuthController {
 
             logger.info("User authenticated successfully: {}", request.email());
             
-            // Get UserDetails from Authentication
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            // Get user details and generate tokens
+            User user = (User) authentication.getPrincipal();
+            String accessToken = tokenGenerator.generateToken(user);
             
-            // Generate tokens
-            String accessToken = tokenGenerator.generateToken(userDetails);
-            String refreshToken = tokenGenerator.generateRefreshToken(userDetails);
+            // Create and persist refresh token
+            RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getUserId());
 
             logger.info("Generated tokens for user: {}", request.email());
 
             // Create response
             AuthResponse authResponse = new AuthResponse(
                 accessToken,
-                refreshToken,
+                refreshToken.getToken(),
                 "Bearer"
             );
 
@@ -102,28 +105,24 @@ public class AuthController {
                 ? refreshToken.substring(7) 
                 : refreshToken;
 
-            // Get user from refresh token
-            String username = tokenGenerator.extractUsername(refreshToken);
-            UserDetails userDetails = userService.loadUserByUsername(username);
+            // Verify refresh token
+            RefreshToken token = refreshTokenService.findByToken(refreshToken)
+                .orElseThrow(() -> new RuntimeException("Refresh token not found"));
+            
+            // Verify token is not expired or revoked
+            refreshTokenService.verifyExpiration(token);
 
-            // Validate token
-            if (!tokenGenerator.isTokenValid(refreshToken, userDetails)) {
-                logger.error("Invalid refresh token");
-                return ResponseEntity.badRequest().build();
-            }
+            // Get user and generate new tokens
+            User user = token.getUser();
+            String newAccessToken = tokenGenerator.generateToken(user);
+            RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(user.getUserId());
 
-            logger.info("User loaded from refresh token: {}", username);
-
-            // Generate new tokens
-            String newAccessToken = tokenGenerator.generateToken(userDetails);
-            String newRefreshToken = tokenGenerator.generateRefreshToken(userDetails);
-
-            logger.info("New tokens generated for user: {}", username);
+            logger.info("New tokens generated for user: {}", user.getEmail());
             
             // Create response
             AuthResponse authResponse = new AuthResponse(
                 newAccessToken,
-                newRefreshToken,
+                newRefreshToken.getToken(),
                 "Bearer"
             );
 

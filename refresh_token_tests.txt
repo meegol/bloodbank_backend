@@ -1,0 +1,71 @@
+# Refresh Token Flow Test Collection
+
+## 1. Register a Test User
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+    "email": "test@example.com",
+    "password": "Test123!",
+    "firstName": "Test",
+    "lastName": "User",
+    "role": "DONOR"
+}
+
+Expected Response: 201 Created
+
+## 2. Login to Get Initial Tokens
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+    "email": "test@example.com",
+    "password": "Test123!"
+}
+
+Expected Response: 200 OK
+{
+    "accessToken": "...",
+    "refreshToken": "...",
+    "tokenType": "Bearer"
+}
+
+## 3. Use Access Token to Access Protected Resource
+GET http://localhost:8080/api/users/me
+Authorization: Bearer {access_token}
+
+Expected Response: 200 OK
+{
+    "userId": ...,
+    "email": "test@example.com",
+    ...
+}
+
+## 4. Refresh Token to Get New Access Token
+POST http://localhost:8080/api/auth/refresh-token
+Authorization: Bearer {refresh_token}
+
+Expected Response: 200 OK
+{
+    "accessToken": "...",
+    "refreshToken": "...",
+    "tokenType": "Bearer"
+}
+
+## 5. Verify Old Refresh Token is Revoked
+POST http://localhost:8080/api/auth/refresh-token
+Authorization: Bearer {old_refresh_token}
+
+Expected Response: 400 Bad Request
+{
+    "error": "Refresh token was revoked. Please make a new login request"
+}
+
+## Test Cases to Verify:
+1. Successfully register a new user
+2. Login and receive both access and refresh tokens
+3. Access protected endpoint with access token
+4. Get new tokens using refresh token
+5. Verify old refresh token is revoked
+6. Verify tokens are stored in database
+7. Test token expiration handling
