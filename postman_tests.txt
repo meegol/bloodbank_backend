@@ -1,0 +1,150 @@
+# Blood Bank API Testing Guide
+
+Base URL: http://localhost:8080
+
+## Authentication Endpoints
+
+1. Register User
+   - Endpoint: POST /api/auth/register
+   - Body (DONOR):
+     ```json
+     {
+         "name": "Test Donor",
+         "email": "donor@test.com",
+         "password": "password123",
+         "dateOfBirth": "1990-01-01",
+         "contactInformation": "1234567890",
+         "roles": "DONOR"
+     }
+     ```
+   - Body (HOSPITAL):
+     ```json
+     {
+         "name": "Test Hospital",
+         "email": "hospital@test.com",
+         "password": "password123",
+         "dateOfBirth": "1990-01-01",
+         "contactInformation": "1234567890",
+         "roles": "HOSPITAL"
+     }
+     ```
+   - Body (ADMIN):
+     ```json
+     {
+         "name": "Test Admin",
+         "email": "admin@test.com",
+         "password": "password123",
+         "dateOfBirth": "1990-01-01",
+         "contactInformation": "1234567890",
+         "roles": "ADMIN"
+     }
+     ```
+
+2. Login
+   - Endpoint: POST /api/auth/login
+   - Body:
+     ```json
+     {
+         "email": "user@example.com",
+         "password": "password123"
+     }
+     ```
+   - Response will include:
+     - accessToken
+     - refreshToken
+     - tokenType: "Bearer"
+
+## Protected Endpoints
+
+Note: For all protected endpoints, add Authorization header:
+Authorization: Bearer {your_access_token}
+
+1. Get Current User
+   - Endpoint: GET /api/users/me
+   - Headers:
+     - Authorization: Bearer {token}
+   - No body required
+
+2. Filter Users (Admin Only)
+   - Endpoint: GET /api/users/filter
+   - Headers:
+     - Authorization: Bearer {admin_token}
+   - Query Parameters:
+     - role: DONOR/HOSPITAL/ADMIN (optional)
+
+## Test Cases
+
+1. Registration Flow:
+   a. Register new DONOR
+   b. Register new HOSPITAL
+   c. Register new ADMIN
+   d. Try registering with existing email (should fail)
+   e. Try registering with invalid role (should fail)
+
+2. Login Flow:
+   a. Login with valid credentials
+   b. Login with wrong password (should fail)
+   c. Login with non-existent email (should fail)
+
+3. Protected Endpoints:
+   a. Access /api/users/me:
+      - With valid token (should succeed)
+      - With expired token (should fail)
+      - Without token (should fail)
+      - With invalid token (should fail)
+
+   b. Access /api/users/filter:
+      - With ADMIN token (should succeed)
+      - With DONOR token (should fail)
+      - With HOSPITAL token (should fail)
+      - Without token (should fail)
+
+## Example Test Flow
+
+1. Register ADMIN:
+   ```json
+   POST /api/auth/register
+   {
+       "name": "Test Admin",
+       "email": "admin@test.com",
+       "password": "password123",
+       "dateOfBirth": "1990-01-01",
+       "contactInformation": "1234567890",
+       "roles": "ADMIN"
+   }
+   ```
+
+2. Login as ADMIN:
+   ```json
+   POST /api/auth/login
+   {
+       "email": "admin@test.com",
+       "password": "password123"
+   }
+   ```
+
+3. Use received token to access protected endpoint:
+   GET /api/users/filter?role=DONOR
+   Headers:
+   - Authorization: Bearer {admin_token}
+
+## Common HTTP Status Codes
+
+- 200: Success
+- 201: Created
+- 400: Bad Request
+- 401: Unauthorized
+- 403: Forbidden
+- 404: Not Found
+- 409: Conflict (e.g., email already exists)
+- 500: Internal Server Error
+
+## Tips
+1. Save the tokens after login
+2. Use environment variables in Postman to store:
+   - base_url
+   - admin_token
+   - donor_token
+   - hospital_token
+3. Test both positive and negative scenarios
+4. Verify response status codes and messages

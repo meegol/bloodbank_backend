@@ -1,6 +1,5 @@
 package RedSource.controllers;
 
-import RedSource.entities.User;
 import RedSource.entities.DTO.UserDTO;
 import RedSource.entities.RO.UserRO;
 import RedSource.entities.response.ErrorResponse;

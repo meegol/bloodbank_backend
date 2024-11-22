@@ -3,7 +3,6 @@ package RedSource.controllers;
 import RedSource.dto.AuthResponse;
 import RedSource.dto.LoginRequest;
 import RedSource.dto.RegisterRequest;
-import RedSource.entities.User;
 import RedSource.entities.DTO.UserDTO;
 import RedSource.security.jwt.JwtTokenGenerator;
 import RedSource.services.UserService;
